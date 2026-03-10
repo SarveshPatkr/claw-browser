@@ -4,6 +4,18 @@ A browser runtime for AI agents and owners to collaborate in one persistent live
 
 When an agent gets blocked by CAPTCHA, OAuth login, native UI friction, or anti-bot checks, the owner can step in, complete that step, and hand control back without losing browser state.
 
+## Screenshots
+
+Captured from a live session using only `./scripts/browser-cmd.sh`.
+
+Main dashboard (connected stream + multiple tabs):
+
+![Claw Browser main dashboard](docs/screenshots/claw-home.png)
+
+Settings page (connection line + health check):
+
+![Claw Browser settings page](docs/screenshots/claw-settings.png)
+
 ## Setup and Run
 
 Claw Browser is script-first. No `docker compose`, no `npm run dev`.
@@ -45,18 +57,6 @@ Stop everything:
 ```bash
 ./scripts/stop.sh
 ```
-
-## Screenshots
-
-Captured from a live session using only `./scripts/browser-cmd.sh`.
-
-Main dashboard (connected stream + multiple tabs):
-
-![Claw Browser main dashboard](docs/screenshots/claw-home.png)
-
-Settings page (connection line + health check):
-
-![Claw Browser settings page](docs/screenshots/claw-settings.png)
 
 ## Why This Exists
 
