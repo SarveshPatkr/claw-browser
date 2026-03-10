@@ -11,11 +11,14 @@ Rules:
 git clone https://github.com/SarveshPatkr/claw-browser.git
 cd claw-browser
 
-# Generate credentials
+./scripts/start.sh
+```
+
+Optional `.env` overrides:
+
+```bash
 echo "API_KEY=$(openssl rand -hex 32)" >> .env
 echo "VNC_PASSWORD=$(openssl rand -base64 16)" >> .env
-
-./scripts/start.sh
 ```
 
 ## Optional: Global Commands
@@ -34,7 +37,7 @@ browser-info    # Show connection info
 1. Run `./scripts/start.sh`
 2. Open `http://localhost:3000` (or the printed host/IP URL)
 3. Go to Settings → paste connection line
-4. Enter API Key in Settings
+4. If you set `API_KEY`, ensure the same key is in Settings
 
 Fallback:
 - Open `client/dist/index.html` directly if needed.
@@ -44,7 +47,7 @@ Fallback:
 ```bash
 ./scripts/serve-client.sh --status
 ./scripts/serve-client.sh --stop
-./scripts/serve-client.sh --ensure --daemon --port 3000 --bind 0.0.0.0
+./scripts/serve-client.sh --ensure --daemon --port 3000 --bind 127.0.0.1
 ```
 
 ## CLI Commands

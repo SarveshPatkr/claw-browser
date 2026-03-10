@@ -242,14 +242,28 @@ def fetch_cdp_targets():
     except:
         return []
 
+def cdp_ws_to_path(ws_url):
+    if not ws_url:
+        return ""
+    try:
+        parsed = urlparse(ws_url)
+        if parsed.path:
+            suffix = parsed.path
+            if parsed.query:
+                suffix += f"?{parsed.query}"
+            return suffix
+    except:
+        pass
+    if ws_url.startswith("/"):
+        return ws_url
+    return f"/{ws_url.lstrip('/')}"
+
 def fetch_browser_ws():
     try:
         req = urllib.request.urlopen("http://127.0.0.1:9222/json/version", timeout=1)
         data = json.loads(req.read().decode("utf-8"))
         ws = data.get("webSocketDebuggerUrl", "")
-        if ws:
-            return ws.replace("127.0.0.1:9222", "HOST_PLACEHOLDER")
-        return ""
+        return cdp_ws_to_path(ws)
     except:
         return ""
 
@@ -297,8 +311,7 @@ def write_state(windows, active_hex):
         if matched_target:
             matched_ids.add(matched_target["id"])
             ws_url = matched_target.get("webSocketDebuggerUrl")
-            if ws_url:
-                ws_url = ws_url.replace("127.0.0.1:9222", "HOST_PLACEHOLDER")
+            ws_url = cdp_ws_to_path(ws_url)
 
         out_path = PREVIEW_DIR / f"tab{idx}.jpg"
         ts = int(os.path.getmtime(out_path) * 1000) if out_path.exists() else int(time.time() * 1000)

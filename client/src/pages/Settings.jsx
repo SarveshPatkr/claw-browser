@@ -8,6 +8,10 @@ function normalizePath(value) {
   return cleaned || 'websockify';
 }
 
+function resolveApiKey(explicitKey) {
+  return String(explicitKey || '').trim();
+}
+
 function buildConnectionLine(settings) {
   const host = settings.remoteHost || 'localhost';
   const api = settings.apiPort || '18080';
@@ -143,7 +147,7 @@ export default function Settings() {
       const apiPort = parsed.apiPort || '18080';
       const vncPort = parsed.vncPort || '16080';
       const path = normalizePath(parsed.path || 'websockify');
-      const apiKey = parsed.apiKey || '';
+      const apiKey = resolveApiKey(parsed.apiKey);
 
       setTestStatus(`Testing API + stream for ${host}...`);
       const authHeaders = apiKey ? { 'Authorization': `Bearer ${apiKey}` } : {};
@@ -184,7 +188,7 @@ export default function Settings() {
       vncPort: '16080',
       cdpPort: '19222',
       path: 'websockify',
-      apiKey: 'change-me',
+      apiKey: '',
     };
     updateSettings(local);
     setEngineInput(buildConnectionLine(local));
@@ -196,7 +200,7 @@ export default function Settings() {
     const apiPort = settings.apiPort || '18080';
     const vncPort = settings.vncPort || '16080';
     const path = normalizePath(settings.path || 'websockify');
-    const apiKey = settings.apiKey || '';
+    const apiKey = resolveApiKey(settings.apiKey);
 
     setTestStatus(`Testing API + stream for ${host}...`);
 

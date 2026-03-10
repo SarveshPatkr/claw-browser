@@ -23,7 +23,8 @@ export function saveRemoteLinks(links) {
 export function getSettings() {
   try {
     const stored = localStorage.getItem(StorageKeys.SETTINGS);
-    return stored ? JSON.parse(stored) : getDefaultSettings();
+    const parsed = stored ? JSON.parse(stored) : getDefaultSettings();
+    return normalizeSettings(parsed);
   } catch {
     return getDefaultSettings();
   }
@@ -46,4 +47,8 @@ export function getDefaultSettings() {
     viewOnly: false,
     resizeMode: 'remote',
   };
+}
+
+function normalizeSettings(settings) {
+  return { ...getDefaultSettings(), ...(settings || {}) };
 }

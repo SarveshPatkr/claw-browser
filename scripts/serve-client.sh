@@ -22,7 +22,7 @@ LOG_FILE="$RUNTIME_DIR/client-server.log"
 
 MODE="foreground"
 CLIENT_PORT="${CLIENT_PORT:-3000}"
-CLIENT_BIND_ADDRESS="${CLIENT_BIND_ADDRESS:-0.0.0.0}"
+CLIENT_BIND_ADDRESS="${CLIENT_BIND_ADDRESS:-127.0.0.1}"
 
 print_help() {
   cat <<USAGE
@@ -34,7 +34,7 @@ Options:
   --stop            Stop background server
   --status          Show background server status
   --port <port>     HTTP port (default: CLIENT_PORT or 3000)
-  --bind <address>  Bind address (default: CLIENT_BIND_ADDRESS or 0.0.0.0)
+  --bind <address>  Bind address (default: CLIENT_BIND_ADDRESS or 127.0.0.1)
   -h, --help        Show this help
 USAGE
 }
@@ -159,8 +159,18 @@ start_background() {
   local pid=$!
   echo "$pid" > "$PID_FILE"
 
-  sleep 0.35
-  if ! kill -0 "$pid" >/dev/null 2>&1; then
+  # Give the process a brief stabilization window. Some environments fail right
+  # after spawn (e.g., socket bind denied), so a single immediate check is too optimistic.
+  local stable=1
+  for _ in $(seq 1 50); do
+    if ! kill -0 "$pid" >/dev/null 2>&1; then
+      stable=0
+      break
+    fi
+    sleep 0.1
+  done
+
+  if [[ "$stable" != "1" ]]; then
     rm -f "$PID_FILE"
     echo "Failed to start client server on ${CLIENT_BIND_ADDRESS}:${CLIENT_PORT}" >&2
     echo "Check log: $LOG_FILE" >&2

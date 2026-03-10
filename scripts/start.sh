@@ -20,11 +20,6 @@ cd "$PROJECT_DIR"
 mkdir -p downloads
 chmod 777 downloads 2>/dev/null || true
 
-if [[ ! -f .env && -f .env.example ]]; then
-  cp .env.example .env
-  echo "Created .env from .env.example."
-fi
-
 if [[ -f .env ]]; then
   set -a
   source .env
@@ -39,7 +34,7 @@ require_cmd() {
   fi
 }
 
-BIND_ADDRESS="${BIND_ADDRESS:-0.0.0.0}"
+BIND_ADDRESS="${BIND_ADDRESS:-127.0.0.1}"
 RAW_VNC_HOST_PORT="${RAW_VNC_HOST_PORT:-15900}"
 VNC_WS_HOST_PORT="${VNC_WS_HOST_PORT:-16080}"
 CDP_HOST_PORT="${CDP_HOST_PORT:-19222}"
@@ -59,13 +54,14 @@ API_PORT="${API_PORT:-8080}"
 VNC_PASSWORD="${VNC_PASSWORD:-}"
 API_KEY="${API_KEY:-}"
 CLIENT_PORT="${CLIENT_PORT:-3000}"
-CLIENT_BIND_ADDRESS="${CLIENT_BIND_ADDRESS:-0.0.0.0}"
+CLIENT_BIND_ADDRESS="${CLIENT_BIND_ADDRESS:-127.0.0.1}"
 AUTO_START_CLIENT_SERVER="${AUTO_START_CLIENT_SERVER:-1}"
 
 SHM_SIZE="${SHM_SIZE:-4gb}"
 IMAGE_NAME="${IMAGE_NAME:-browser-tool:local}"
 CONTAINER_NAME="${CONTAINER_NAME:-browser-tool}"
 DATA_VOLUME_NAME="${DATA_VOLUME_NAME:-browser-data}"
+CLIENT_CONTAINER_NAME="${CLIENT_CONTAINER_NAME:-browser-tool-client}"
 
 build_client_if_needed() {
   if [[ "${SKIP_CLIENT_BUILD:-0}" == "1" ]]; then
@@ -177,11 +173,31 @@ start_client_server() {
     return 0
   fi
 
-  "$PROJECT_DIR/scripts/serve-client.sh" \
+  if "$PROJECT_DIR/scripts/serve-client.sh" \
     --ensure \
     --daemon \
     --port "$CLIENT_PORT" \
-    --bind "$CLIENT_BIND_ADDRESS"
+    --bind "$CLIENT_BIND_ADDRESS"; then
+    return 0
+  fi
+
+  echo "Client host server failed; falling back to Docker client server..."
+
+  if docker ps -a --format '{{.Names}}' | grep -Fxq "$CLIENT_CONTAINER_NAME"; then
+    docker rm -f "$CLIENT_CONTAINER_NAME" >/dev/null
+  fi
+
+  docker run -d \
+    --name "$CLIENT_CONTAINER_NAME" \
+    --restart unless-stopped \
+    --entrypoint python3 \
+    -p "${CLIENT_BIND_ADDRESS}:${CLIENT_PORT}:80" \
+    "$IMAGE_NAME" \
+    -m http.server 80 --directory /usr/share/novnc --bind 0.0.0.0 >/dev/null
+
+  echo "Client server started via Docker fallback"
+  echo "  Container: $CLIENT_CONTAINER_NAME"
+  echo "  URL: http://${CLIENT_BIND_ADDRESS}:${CLIENT_PORT}"
 }
 
 require_cmd docker

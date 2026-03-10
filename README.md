@@ -33,12 +33,15 @@ Claw Browser is script-first. No `docker compose`, no `npm run dev`.
 git clone https://github.com/SarveshPatkr/claw-browser.git
 cd claw-browser
 
-# 2) Create local secrets (required)
-echo "VNC_PASSWORD=$(openssl rand -base64 16)" >> .env
-echo "API_KEY=$(openssl rand -hex 32)" >> .env
-
-# 3) Start everything with one command
+# 2) Start everything with one command
 ./scripts/start.sh
+```
+
+Optional `.env` overrides (only if you want custom values):
+
+```bash
+echo "API_KEY=$(openssl rand -hex 32)" >> .env
+echo "VNC_PASSWORD=$(openssl rand -base64 16)" >> .env
 ```
 
 What `./scripts/start.sh` does:
@@ -147,7 +150,7 @@ browser-info
 ```bash
 ./scripts/serve-client.sh --status
 ./scripts/serve-client.sh --stop
-./scripts/serve-client.sh --ensure --daemon --port 3000 --bind 0.0.0.0
+./scripts/serve-client.sh --ensure --daemon --port 3000 --bind 127.0.0.1
 ```
 
 ## Environment Knobs
@@ -155,7 +158,7 @@ browser-info
 - `AUTO_START_CLIENT_SERVER=1`
 - `AUTO_STOP_CLIENT_SERVER=1`
 - `CLIENT_PORT=3000`
-- `CLIENT_BIND_ADDRESS=0.0.0.0`
+- `CLIENT_BIND_ADDRESS=127.0.0.1`
 
 See `.env.example` for full configuration.
 

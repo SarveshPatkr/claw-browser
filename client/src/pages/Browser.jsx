@@ -21,7 +21,19 @@ export default function Browser() {
   const focusPort = settings.focusPort;
 
   const getCdpWs = useCallback(async (rawWsUrl) => {
-    const wsUrl = rawWsUrl.replace('HOST_PLACEHOLDER', `${window.location.hostname}:${cdpPort}`);
+    const raw = String(rawWsUrl || '').trim();
+    if (!raw) {
+      throw new Error('Missing CDP WebSocket URL');
+    }
+
+    let wsUrl = raw;
+    if (!(raw.startsWith('ws://') || raw.startsWith('wss://'))) {
+      if (raw.startsWith('/')) {
+        wsUrl = `ws://${window.location.hostname}:${cdpPort}${raw}`;
+      } else {
+        wsUrl = `ws://${window.location.hostname}:${cdpPort}/${raw}`;
+      }
+    }
     const existing = cdpWsPool.current.get(wsUrl);
     if (existing && existing.readyState === WebSocket.OPEN) {
       return Promise.resolve(existing);

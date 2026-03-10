@@ -10,6 +10,31 @@ const CTRL_KEYSYM = 0xffe3;
 const ALT_KEYSYM = 0xffe9;
 const ZERO_KEYSYM = 0x0030;
 
+function resolveApiKey(explicitKey) {
+  return String(explicitKey || '').trim();
+}
+
+function resolveCdpWsUrl(rawWsUrl, host, cdpPort) {
+  const raw = String(rawWsUrl || '').trim();
+  if (!raw) return '';
+
+  if (raw.startsWith('ws://') || raw.startsWith('wss://')) {
+    try {
+      const parsed = new URL(raw);
+      parsed.host = `${host}:${cdpPort}`;
+      return parsed.toString();
+    } catch {
+      return raw;
+    }
+  }
+
+  if (raw.startsWith('/')) {
+    return `ws://${host}:${cdpPort}${raw}`;
+  }
+
+  return `ws://${host}:${cdpPort}/${raw}`;
+}
+
 export default function BrowserPage() {
   const { loading: novncLoading } = useNoVNC();
   const { settings } = useSettings();
@@ -44,12 +69,13 @@ export default function BrowserPage() {
   }, [host, apiPort]);
 
   const authHeaders = useMemo(() => {
+    const apiKey = resolveApiKey(settings.apiKey);
     const headers = {};
-    if (settings.apiKey) {
-      headers['Authorization'] = `Bearer ${settings.apiKey}`;
+    if (apiKey) {
+      headers['Authorization'] = `Bearer ${apiKey}`;
     }
     return headers;
-  }, [settings.apiKey]);
+  }, [host, apiPort, settings.apiKey]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -62,7 +88,7 @@ export default function BrowserPage() {
     async (rawWsUrl) => {
       if (!rawWsUrl) return null;
 
-      const finalWsUrl = rawWsUrl.replace('HOST_PLACEHOLDER', `${host}:${cdpPort}`);
+      const finalWsUrl = resolveCdpWsUrl(rawWsUrl, host, cdpPort);
       const existing = cdpWsPool.current.get(finalWsUrl);
       if (existing && existing.readyState === WebSocket.OPEN) {
         return Promise.resolve(existing);

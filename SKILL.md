@@ -8,12 +8,15 @@ AI agent browser automation. State-first workflow.
 # Install CLI (optional - also works without)
 sudo ./scripts/install-global-commands.sh
 
-# Generate credentials
-echo "API_KEY=$(openssl rand -hex 32)" >> .env
-echo "VNC_PASSWORD=$(openssl rand -base64 16)" >> .env
-
 # Start
 ./scripts/start.sh
+```
+
+Optional `.env` overrides:
+
+```bash
+echo "API_KEY=$(openssl rand -hex 32)" >> .env
+echo "VNC_PASSWORD=$(openssl rand -base64 16)" >> .env
 ```
 
 Rules:
@@ -23,7 +26,7 @@ Rules:
 
 ## Credentials
 
-- `API_KEY` in `.env` - for API access
+- `API_KEY` in `.env` (optional) - enables API auth
 - Configure in client Settings
 
 ## Commands

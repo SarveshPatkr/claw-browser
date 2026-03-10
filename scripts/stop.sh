@@ -24,9 +24,10 @@ if [[ -f .env ]]; then
 fi
 
 CONTAINER_NAME="${CONTAINER_NAME:-browser-tool}"
+CLIENT_CONTAINER_NAME="${CLIENT_CONTAINER_NAME:-browser-tool-client}"
 AUTO_STOP_CLIENT_SERVER="${AUTO_STOP_CLIENT_SERVER:-1}"
 CLIENT_PORT="${CLIENT_PORT:-3000}"
-CLIENT_BIND_ADDRESS="${CLIENT_BIND_ADDRESS:-0.0.0.0}"
+CLIENT_BIND_ADDRESS="${CLIENT_BIND_ADDRESS:-127.0.0.1}"
 
 if docker ps -a --format '{{.Names}}' | grep -Fxq "$CONTAINER_NAME"; then
   docker rm -f "$CONTAINER_NAME" >/dev/null
@@ -40,4 +41,9 @@ if [[ "$AUTO_STOP_CLIENT_SERVER" == "1" ]]; then
     --stop \
     --port "$CLIENT_PORT" \
     --bind "$CLIENT_BIND_ADDRESS" || true
+
+  if docker ps -a --format '{{.Names}}' | grep -Fxq "$CLIENT_CONTAINER_NAME"; then
+    docker rm -f "$CLIENT_CONTAINER_NAME" >/dev/null
+    echo "Stopped client fallback container ($CLIENT_CONTAINER_NAME)"
+  fi
 fi
