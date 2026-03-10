@@ -1,0 +1,9 @@
+node_modules/
+.env
+*.log
+.pnpm-store/
+.runtime/
+downloads/
+scripts/__pycache__/
+client/node_modules/
+client/dist/

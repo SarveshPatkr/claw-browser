@@ -1,0 +1,205 @@
+.tab-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 0;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.tab-empty {
+  text-align: center;
+  color: #64748b;
+  font-size: 0.75rem;
+  padding: 10px 6px;
+  border: 1px dashed rgba(148, 163, 184, 0.4);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.65);
+}
+
+.tab-card {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(255, 255, 255, 0.84);
+  padding: 6px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.tab-card:hover {
+  border-color: rgba(15, 23, 42, 0.25);
+}
+
+.tab-card.active {
+  border-color: rgba(14, 116, 144, 0.35);
+  box-shadow: 0 4px 12px rgba(14, 116, 144, 0.1);
+}
+
+.tab-card.closing {
+  animation: tab-exit 180ms ease forwards;
+  pointer-events: none;
+}
+
+.tab-card.opening {
+  animation: tab-pop 200ms ease;
+}
+
+.tab-favicon-wrap {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: #f8fafc;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.tab-favicon {
+  width: 16px;
+  height: 16px;
+}
+
+.skeleton-thumb {
+  background: linear-gradient(90deg, #e2e8f0 25%, #f8fafc 50%, #e2e8f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.3s infinite linear;
+}
+
+.tab-label {
+  min-width: 0;
+  flex: 1;
+}
+
+.tab-label-title,
+.tab-label-domain {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tab-label-title {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.tab-label-domain {
+  font-size: 0.65rem;
+  color: #64748b;
+}
+
+.tab-close {
+  border: 0;
+  background: transparent;
+  color: #64748b;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.tab-close:hover {
+  color: #991b1b;
+  background: rgba(254, 226, 226, 0.8);
+}
+
+.new-tab-btn {
+  border: 1px dashed rgba(100, 116, 139, 0.45);
+  border-radius: 8px;
+  background: rgba(241, 245, 249, 0.65);
+  color: #475569;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.new-tab-btn span {
+  font-size: 0.9rem;
+}
+
+.new-tab-btn small {
+  font-size: 0.65rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.new-tab-btn:hover {
+  background: rgba(226, 232, 240, 0.9);
+}
+
+@keyframes tab-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes tab-exit {
+  from {
+    opacity: 1;
+    transform: scale(1);
+    max-height: 50px;
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin: 0;
+    border-width: 0;
+  }
+}
+
+@keyframes tab-pop {
+  0% {
+    transform: scale(0.96);
+  }
+  55% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (max-width: 980px) {
+  .tab-rail {
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 3px;
+  }
+
+  .tab-card,
+  .new-tab-btn,
+  .tab-empty {
+    min-width: 160px;
+  }
+}

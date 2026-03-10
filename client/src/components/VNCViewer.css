@@ -1,0 +1,59 @@
+.vnc-viewer {
+  position: relative;
+  flex: 1;
+  min-height: 280px;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: linear-gradient(160deg, #0f172a 0%, #1e293b 80%);
+  overflow: hidden;
+}
+
+.vnc-container {
+  width: 100%;
+  height: 100%;
+}
+
+.vnc-container > div,
+.vnc-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.vnc-status-badge {
+  position: absolute;
+  right: 6px;
+  top: 6px;
+  border-radius: 999px;
+  border: 1px solid;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 3px 6px;
+  backdrop-filter: blur(8px);
+}
+
+.vnc-status-loading,
+.vnc-status-connecting {
+  background: rgba(254, 249, 195, 0.92);
+  border-color: rgba(161, 98, 7, 0.35);
+  color: #854d0e;
+}
+
+.vnc-status-connected {
+  background: rgba(220, 252, 231, 0.92);
+  border-color: rgba(22, 101, 52, 0.35);
+  color: #166534;
+}
+
+.vnc-status-disconnected,
+.vnc-status-error {
+  background: rgba(254, 226, 226, 0.92);
+  border-color: rgba(153, 27, 27, 0.35);
+  color: #991b1b;
+}
+
+@media (max-width: 980px) {
+  .vnc-viewer {
+    min-height: 200px;
+  }
+}

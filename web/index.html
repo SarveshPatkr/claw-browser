@@ -1,0 +1,1196 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>browser-tool</title>
+	<style>
+		* {
+			box-sizing: border-box;
+		}
+
+		:root {
+			--glass-white: rgba(255, 255, 255, 0.87);
+			--glass-blur: 7px;
+		}
+
+		html,
+		body {
+			margin: 0;
+			height: 100%;
+		}
+
+		body {
+			background-image: linear-gradient(rgba(247, 249, 252, 0.16), rgba(247, 249, 252, 0.16)), url("./wallpaper.jpg");
+			background-size: cover;
+			background-position: center;
+			background-repeat: no-repeat;
+			background-attachment: fixed;
+			padding: 10px;
+			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+		}
+
+		/* ── Screenshot Fly-to-Sidebar Effect ─────────────────────────────────── */
+		@keyframes fly-to-card {
+			0% {
+				top: var(--ov-top);
+				left: var(--ov-left);
+				width: var(--ov-w);
+				height: var(--ov-h);
+				opacity: 1;
+				border-radius: 12px;
+			}
+
+			80% {
+				top: var(--card-top);
+				left: var(--card-left);
+				width: var(--card-w);
+				height: var(--card-h);
+				opacity: 1;
+				border-radius: 12px;
+			}
+
+			100% {
+				top: var(--card-top);
+				left: var(--card-left);
+				width: var(--card-w);
+				height: var(--card-h);
+				opacity: 0;
+				border-radius: 12px;
+			}
+		}
+
+		@keyframes fly-from-card {
+			0% {
+				top: var(--card-top);
+				left: var(--card-left);
+				width: var(--card-w);
+				height: var(--card-h);
+				opacity: 1;
+				border-radius: 12px;
+			}
+
+			75% {
+				top: var(--ov-top);
+				left: var(--ov-left);
+				width: var(--ov-w);
+				height: var(--ov-h);
+				opacity: 1;
+				border-radius: 4px;
+			}
+
+			100% {
+				top: var(--ov-top);
+				left: var(--ov-left);
+				width: var(--ov-w);
+				height: var(--ov-h);
+				opacity: 0;
+				border-radius: 0;
+			}
+		}
+
+		.switch-overlay-el {
+			position: fixed;
+			z-index: 9000;
+			background-size: cover;
+			background-position: center;
+			box-shadow: 0 8px 40px rgba(0, 0, 0, 0.3);
+			pointer-events: none;
+			display: none;
+		}
+
+		.switch-overlay-el.flying-out {
+			display: block;
+			animation: fly-to-card 480ms cubic-bezier(0.4, 0, 0.6, 1) forwards;
+		}
+
+		.switch-overlay-el.flying-in {
+			display: block;
+			animation: fly-from-card 480ms cubic-bezier(0.2, 0, 0.2, 1) forwards;
+		}
+
+		.main-content {
+			transform-origin: center center;
+		}
+
+		@keyframes card-pop-in {
+			0% {
+				transform: scale(0.5) translateY(8px);
+				opacity: 0;
+			}
+
+			70% {
+				transform: scale(1.04) translateY(-2px);
+				opacity: 1;
+			}
+
+			100% {
+				transform: scale(1) translateY(0);
+				opacity: 1;
+			}
+		}
+
+		.card-pop-in {
+			animation: card-pop-in 320ms cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+		}
+
+		#tab-rail {
+			position: fixed;
+			left: 28px;
+			top: 18px;
+			bottom: 18px;
+			width: 218px;
+			display: flex;
+			flex-direction: column;
+			gap: 9px;
+			overflow-y: auto;
+			overflow-x: hidden;
+			/* No side scroll ever */
+			/* Hide scrollbar for standard browsers */
+			scrollbar-width: none;
+			-ms-overflow-style: none;
+		}
+
+		/* Hide scrollbar for webkit browsers */
+		#tab-rail::-webkit-scrollbar {
+			display: none;
+		}
+
+		@keyframes fadeIn {
+			from {
+				opacity: 0;
+				transform: translateY(10px) scale(0.95);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0) scale(1);
+			}
+		}
+
+		@keyframes fadeOut {
+			from {
+				opacity: 1;
+				transform: scale(1);
+				height: 80px;
+				margin-bottom: 9px;
+			}
+
+			to {
+				opacity: 0;
+				transform: scale(0.9);
+				height: 0;
+				margin-bottom: 0;
+				padding: 0;
+				border: 0;
+			}
+		}
+
+		@keyframes shimmer {
+			0% {
+				background-position: 200% 0;
+			}
+
+			100% {
+				background-position: -200% 0;
+			}
+		}
+
+		.tab-card {
+			position: relative;
+			border: 1px solid rgba(255, 255, 255, 0.55);
+			border-right: none;
+			border-radius: 13px 0 0 13px;
+			background: rgba(255, 255, 255, 0.42);
+			padding: 10px;
+			cursor: pointer;
+			width: 100%;
+			text-align: left;
+			appearance: none;
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			transition: background 140ms ease, transform 140ms ease;
+			animation: fadeIn 200ms ease-out forwards;
+			min-height: 56px;
+		}
+
+		.tab-card:hover {
+			background: rgba(255, 255, 255, 0.72);
+		}
+
+		/* Active: pure white, use box shadow specifically to seal edge anti-aliasing */
+		.tab-card.active {
+			border-color: transparent;
+			background: var(--glass-white);
+			backdrop-filter: blur(var(--glass-blur));
+			-webkit-backdrop-filter: blur(var(--glass-blur));
+			transform: none;
+			/* remove translation to prevent scrolling */
+			box-shadow: 2px 0 0 0 var(--glass-white);
+			/* 2px shadow seals the seam without affecting layout */
+			z-index: 10;
+		}
+
+		.tab-card.closing {
+			animation: fadeOut 200ms ease-in forwards;
+			overflow: hidden;
+			pointer-events: none;
+		}
+
+		/* ─── True Concave Blend Corners ───────────────────────────────────────────────
+		   These are WHITE squares positioned above and below the active tab.
+		   The transparent gradient circle acts as a "cutout", revealing the
+		   gray frosted sidebar underneath, forming the attached concave curve! */
+		.tab-curve-top,
+		.tab-curve-bottom {
+			display: none;
+			position: absolute;
+			right: 0;
+			/* Align perfectly with card edge, avoid layout overflow */
+			width: 18px;
+			height: 18px;
+			background: var(--glass-white);
+			/* pure white like the tab */
+			pointer-events: none;
+			z-index: 11;
+		}
+
+		.tab-card.active .tab-curve-top,
+		.tab-card.active .tab-curve-bottom {
+			display: block;
+		}
+
+		/* TOP CURVE: circle at Top-Left (0 0) is transparent.
+		   Leaves a solid white bridge at Bottom-Right connecting to the tab. */
+		.tab-curve-top {
+			top: -18px;
+			-webkit-mask-image: radial-gradient(circle at 0 0, transparent 0 18px, black 19px);
+			mask-image: radial-gradient(circle at 0 0, transparent 0 18px, black 19px);
+		}
+
+		/* BOTTOM CURVE: circle at Bottom-Left (0 100%) is transparent.
+		   Leaves a solid white bridge at Top-Right connecting to the tab. */
+		.tab-curve-bottom {
+			bottom: -18px;
+			-webkit-mask-image: radial-gradient(circle at 0 100%, transparent 0 18px, black 19px);
+			mask-image: radial-gradient(circle at 0 100%, transparent 0 18px, black 19px);
+		}
+
+		/* Favicon icon wrapper */
+		.tab-favicon-wrap {
+			flex-shrink: 0;
+			width: 36px;
+			height: 36px;
+			border-radius: 8px;
+			background: rgba(241, 245, 249, 0.9);
+			border: 1px solid rgba(148, 163, 184, 0.2);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			overflow: hidden;
+		}
+
+		.tab-favicon {
+			width: 24px;
+			height: 24px;
+			object-fit: contain;
+			display: block;
+		}
+
+		/* Skeleton shimmer for the favicon box */
+		.tab-favicon-wrap.skeleton-thumb {
+			background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+			background-size: 200% 100%;
+			animation: shimmer 1.5s infinite;
+		}
+
+		/* Text label (truncated domain/title) */
+		.tab-label {
+			flex: 1;
+			min-width: 0;
+			display: flex;
+			flex-direction: column;
+			gap: 2px;
+		}
+
+		.tab-label-title {
+			font-size: 12px;
+			font-weight: 600;
+			color: #1e293b;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			max-width: 130px;
+		}
+
+		.tab-label-domain {
+			font-size: 10px;
+			color: #64748b;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			max-width: 130px;
+		}
+
+		.tab-index {
+			display: none;
+			/* Index absorbed into layout order; badge removed for cleanliness */
+		}
+
+		.tab-close {
+			flex-shrink: 0;
+			width: 20px;
+			height: 20px;
+			border-radius: 50%;
+			background: rgba(239, 68, 68, 0.0);
+			color: #94a3b8;
+			border: none;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 14px;
+			font-weight: bold;
+			cursor: pointer;
+			opacity: 0;
+			transition: opacity 150ms ease, background 150ms ease, color 150ms ease;
+			z-index: 10;
+			padding: 0;
+			line-height: 1;
+		}
+
+		.tab-card:hover .tab-close {
+			opacity: 1;
+		}
+
+		.tab-close:hover {
+			background: rgba(239, 68, 68, 0.12);
+			color: rgb(220, 38, 38);
+		}
+
+		#main-view {
+			position: absolute;
+			left: 246px;
+			/* 18 left + 228 width of sidebar = 246px */
+			top: 18px;
+			bottom: 18px;
+			right: 18px;
+			background: var(--glass-white);
+			backdrop-filter: blur(var(--glass-blur));
+			-webkit-backdrop-filter: blur(var(--glass-blur));
+			border-radius: 0 18px 18px 18px;
+			padding: 12px;
+			display: flex;
+			flex-direction: column;
+			gap: 12px;
+			box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+			overflow: visible;
+		}
+
+		#url-bar-wrap {
+			background: #f1f5f9;
+			/* Subtle gray inside the white main view */
+			border-radius: 14px;
+			padding: 8px 12px;
+			border: 1px solid rgba(148, 163, 184, 0.22);
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			flex-shrink: 0;
+		}
+
+		.nav-btn {
+			width: 32px;
+			height: 32px;
+			border-radius: 8px;
+			border: 1px solid rgba(148, 163, 184, 0.2);
+			background: rgba(255, 255, 255, 0.6);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			cursor: pointer;
+			font-size: 16px;
+			color: #475569;
+			transition: background 120ms ease;
+		}
+
+		.nav-btn:hover {
+			background: rgba(255, 255, 255, 0.9);
+		}
+
+		#url-input {
+			flex: 1;
+			background: rgba(255, 255, 255, 0.5);
+			border: 1px solid rgba(148, 163, 184, 0.15);
+			border-radius: 8px;
+			padding: 6px 12px;
+			outline: none;
+			font-size: 13px;
+			font-weight: 500;
+			color: #1e293b;
+			letter-spacing: 0.01em;
+		}
+
+		#url-input:focus {
+			background: white;
+			border-color: rgba(37, 99, 235, 0.3);
+		}
+
+		#screen {
+			flex: 1;
+			border-radius: 18px;
+			overflow: hidden;
+			border: 1px solid rgba(140, 146, 160, 0.45);
+			background: #111827;
+			box-shadow: 0 24px 50px rgba(22, 25, 35, 0.2);
+			position: relative;
+			display: flex;
+		}
+
+		/* Make sure the canvas fully covers the screen to avoid black bars */
+		#screen>div {
+			width: 100% !important;
+			height: 100% !important;
+		}
+
+		#screen canvas {
+			width: 100% !important;
+			height: 100% !important;
+			object-fit: fill !important;
+			position: absolute;
+			top: 0;
+			left: 0;
+		}
+
+
+		#status {
+			position: fixed;
+			right: 20px;
+			bottom: 20px;
+			min-height: 32px;
+			display: flex;
+			align-items: center;
+			padding: 0 11px;
+			border: 1px solid rgba(112, 118, 132, 0.4);
+			border-radius: 999px;
+			background: rgba(255, 255, 255, 0.82);
+			backdrop-filter: blur(8px);
+			-webkit-backdrop-filter: blur(8px);
+			color: #1f2937;
+			font-size: 11px;
+			font-weight: 600;
+			line-height: 1;
+			z-index: 100;
+		}
+
+		.new-tab-btn {
+			width: 100%;
+			height: 52px;
+			border: 1px dashed rgba(112, 118, 132, 0.4);
+			border-radius: 13px;
+			background: rgba(255, 255, 255, 0.2);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			cursor: pointer;
+			font-size: 22px;
+			color: rgba(112, 118, 132, 0.6);
+			transition: background 120ms ease, color 120ms ease;
+		}
+
+		.new-tab-btn:hover {
+			background: rgba(255, 255, 255, 0.4);
+			color: rgba(37, 99, 235, 0.7);
+		}
+	</style>
+</head>
+
+<body>
+	<div id="tab-rail"></div>
+	<div id="main-view" class="main-content">
+		<div id="url-bar-wrap">
+			<button id="back-btn" class="nav-btn" title="Back">❮</button>
+			<button id="forward-btn" class="nav-btn" title="Forward">❯</button>
+			<input id="url-input" type="text" placeholder="Enter URL..." autocomplete="off" spellcheck="false" />
+			<input id="password-input" type="password" placeholder="VNC Password" value="Pass@123" style="width:100px;padding:6px 8px;border:1px solid rgba(148,163,184,0.15);border-radius:8px;font-size:12px;" />
+		</div>
+		<div id="screen"></div>
+	</div>
+	<div id="overlay-out" class="switch-overlay-el"></div>
+	<div id="overlay-in" class="switch-overlay-el"></div>
+	<div id="status">Connecting...</div>
+
+	<script type="module">
+		import RFB from "./core/rfb.js";
+		import KeyTable from "./core/input/keysym.js";
+
+		const params = new URLSearchParams(window.location.search);
+		const host = params.get("host") || window.location.hostname;
+		const port = params.get("port") || window.location.port || "6080";
+		const cdpPort = params.get("cdp") || "9222";
+		const path = params.get("path") || "websockify";
+		const password = params.get("password") || "";
+		const viewOnly = params.get("view_only") === "1";
+		const resizeMode = params.get("resize") || "remote";
+		const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+		const wsUrl = `${wsScheme}://${host}:${port}/${path}`;
+		const statusEl = document.getElementById("status");
+		const urlInput = document.getElementById("url-input");
+		const backBtn = document.getElementById("back-btn");
+		const forwardBtn = document.getElementById("forward-btn");
+		const passwordInput = document.getElementById("password-input");
+		const STORAGE_KEY = "browser_tool_vnc_password";
+
+		let tabsData = [];
+		let initialLoad = true;
+		setTimeout(() => { initialLoad = false; }, 2000); // suppress pop-in for pre-existing tabs
+		let browserWsUrl = "";
+		const closingTabs = new Set();
+		// Bug B fix: track which tab we just asked to focus so renderTabs
+		// doesn't immediately flip the active class back when the backend
+		// hasn't caught up yet (within the 1.5s poll window).
+		let pendingActiveId = null;
+
+		// ─── Fix Bug 2: CDP WebSocket connection pool ───────────────────────────
+		// Reuse open WebSocket connections per tab URL instead of creating a new
+		// WebSocket for every single action (was causing 100–500ms latency per click)
+		const cdpWsPool = new Map(); // wsUrl → WebSocket
+
+		function getCdpWs(rawWsUrl) {
+			const wsUrl = rawWsUrl.replace("HOST_PLACEHOLDER", `${host}:${cdpPort}`);
+			const existing = cdpWsPool.get(wsUrl);
+			if (existing && existing.readyState === WebSocket.OPEN) {
+				return Promise.resolve(existing);
+			}
+			// Remove stale entry
+			if (existing) cdpWsPool.delete(wsUrl);
+
+			return new Promise((resolve, reject) => {
+				const ws = new WebSocket(wsUrl);
+				ws.onopen = () => {
+					cdpWsPool.set(wsUrl, ws);
+					resolve(ws);
+				};
+				ws.onclose = () => cdpWsPool.delete(wsUrl);
+				ws.onerror = () => { cdpWsPool.delete(wsUrl); reject(new Error("CDP WS error")); };
+			});
+		}
+
+		function sendCdpMessage(ws, msg) {
+			if (ws.readyState === WebSocket.OPEN) {
+				ws.send(JSON.stringify(msg));
+			}
+		}
+		// ────────────────────────────────────────────────────────────────────────
+
+		function setStatus(message) {
+			statusEl.textContent = message;
+		}
+
+		function getStoredPassword() {
+			try {
+				return window.localStorage.getItem(STORAGE_KEY) || "";
+			} catch {
+				return "";
+			}
+		}
+
+		function savePassword(value) {
+			try {
+				window.localStorage.setItem(STORAGE_KEY, value);
+			} catch {
+			}
+		}
+
+		function clearPassword() {
+			try {
+				window.localStorage.removeItem(STORAGE_KEY);
+			} catch {
+			}
+		}
+
+		let initialPassword = password || getStoredPassword() || "Pass@123";
+
+		passwordInput.value = initialPassword;
+
+		const rfb = new RFB(document.getElementById("screen"), wsUrl, {
+			credentials: { password: initialPassword },
+		});
+
+		rfb.viewOnly = viewOnly;
+		rfb.scaleViewport = true;
+		rfb.resizeSession = false;
+		rfb.focusOnClick = true;
+		rfb.clipViewport = false;
+		rfb.qualityLevel = 9;
+		rfb.compressionLevel = 2;
+		rfb.showDotCursor = true;
+		rfb.addEventListener("connect", () => setStatus("Connected"));
+		rfb.addEventListener("disconnect", () => setStatus("Disconnected"));
+		rfb.addEventListener("securityfailure", () => {
+			clearPassword();
+			setStatus("Auth failed");
+		});
+		rfb.addEventListener("credentialsrequired", () => {
+			const typed = window.prompt("VNC password required:", "") || "";
+			if (!typed) {
+				setStatus("Password required");
+				return;
+			}
+			savePassword(typed);
+			rfb.sendCredentials({ password: typed });
+			setStatus("Authorizing...");
+		});
+
+		passwordInput.addEventListener("change", () => {
+			const newPassword = passwordInput.value;
+			savePassword(newPassword);
+			setStatus("Reconnecting with new password...");
+			rfb.sendCredentials({ password: newPassword });
+		});
+
+		const tabRail = document.getElementById("tab-rail");
+		const tabNodes = new Map();
+		const tabDigitMap = {
+			0: { keysym: KeyTable.XK_0, code: "Digit0" },
+			1: { keysym: KeyTable.XK_1, code: "Digit1" },
+			2: { keysym: KeyTable.XK_2, code: "Digit2" },
+			3: { keysym: KeyTable.XK_3, code: "Digit3" },
+			4: { keysym: KeyTable.XK_4, code: "Digit4" },
+			5: { keysym: KeyTable.XK_5, code: "Digit5" },
+			6: { keysym: KeyTable.XK_6, code: "Digit6" },
+			7: { keysym: KeyTable.XK_7, code: "Digit7" },
+			8: { keysym: KeyTable.XK_8, code: "Digit8" },
+			9: { keysym: KeyTable.XK_9, code: "Digit9" },
+		};
+
+		function press(keysym, code, down) {
+			rfb.sendKey(keysym, code, down);
+		}
+
+		function tap(keysym, code) {
+			press(keysym, code, true);
+			press(keysym, code, false);
+		}
+
+		// ─── playFlyInAnimation: Reusable fly-in for new and switching tabs ──────
+		function playFlyInAnimation(tab, onComplete) {
+			const overlayIn = document.getElementById('overlay-in');
+			const clickedEntry = tabNodes.get(tab.id);
+			const screenEl = document.getElementById('screen');
+
+			if (overlayIn && clickedEntry?.card && screenEl) {
+				const cardRect = clickedEntry.card.getBoundingClientRect();
+				const screenRect = screenEl.getBoundingClientRect();
+
+				overlayIn.style.setProperty('--ov-top', screenRect.top + 'px');
+				overlayIn.style.setProperty('--ov-left', screenRect.left + 'px');
+				overlayIn.style.setProperty('--ov-w', screenRect.width + 'px');
+				overlayIn.style.setProperty('--ov-h', screenRect.height + 'px');
+				overlayIn.style.setProperty('--card-top', cardRect.top + 'px');
+				overlayIn.style.setProperty('--card-left', cardRect.left + 'px');
+				overlayIn.style.setProperty('--card-w', cardRect.width + 'px');
+				overlayIn.style.setProperty('--card-h', cardRect.height + 'px');
+
+				overlayIn.style.backgroundImage = tab.preview ? `url(${tab.preview})` : 'none';
+				overlayIn.style.backgroundColor = tab.preview ? '' : '#ffffff';
+				overlayIn.classList.remove('flying-out', 'flying-in');
+				void overlayIn.offsetWidth; // force reflow
+				overlayIn.classList.add('flying-in');
+				overlayIn.addEventListener('animationend', () => {
+					overlayIn.classList.remove('flying-in');
+					overlayIn.style.backgroundColor = '';
+					if (onComplete) onComplete();
+				}, { once: true });
+			} else {
+				if (onComplete) onComplete();
+			}
+		}
+
+		// ─── switchTab: focus a window via CDP Target.activateTarget ─────────────
+		async function switchTab(tab) {
+			if (!tab || !tab.id) return;
+			rfb.focus();
+
+			// Track pending switch so renderTabs doesn't flip the active class
+			// back before the backend confirms (Bug B fix).
+			pendingActiveId = tab.id;
+
+			// Optimistic UI: highlight the clicked card immediately
+			document.querySelectorAll('.tab-card').forEach(c => c.classList.remove('active'));
+			const entry = tabNodes.get(tab.id);
+			if (entry && entry.card) entry.card.classList.add('active');
+
+			// Block rapid double-clicks while the switch is in-flight (Bug D fix)
+			tabRail.style.pointerEvents = 'none';
+
+			// ─── Screenshot Fly Animation ─────────────────────────────────────────
+			const overlayOut = document.getElementById('overlay-out');
+			const clickedEntry = tabNodes.get(tab.id);
+			const currentTab = tabsData.find(t => t.active && !t.isSkeleton);
+
+			const screenEl = document.getElementById('screen');
+			const screenRect = screenEl.getBoundingClientRect();
+
+			if (overlayOut && clickedEntry?.card) {
+				const cardRect = clickedEntry.card.getBoundingClientRect();
+
+				// ─ FLY OUT: current tab screenshot shrinks to the clicked card ─────────
+				if (currentTab?.preview) {
+					overlayOut.style.setProperty('--ov-top', screenRect.top + 'px');
+					overlayOut.style.setProperty('--ov-left', screenRect.left + 'px');
+					overlayOut.style.setProperty('--ov-w', screenRect.width + 'px');
+					overlayOut.style.setProperty('--ov-h', screenRect.height + 'px');
+					overlayOut.style.setProperty('--card-top', cardRect.top + 'px');
+					overlayOut.style.setProperty('--card-left', cardRect.left + 'px');
+					overlayOut.style.setProperty('--card-w', cardRect.width + 'px');
+					overlayOut.style.setProperty('--card-h', cardRect.height + 'px');
+
+					overlayOut.style.backgroundImage = `url(${currentTab.preview})`;
+					overlayOut.classList.remove('flying-out', 'flying-in');
+					void overlayOut.offsetWidth; // force reflow
+					overlayOut.classList.add('flying-out');
+					overlayOut.addEventListener('animationend', () => {
+						overlayOut.classList.remove('flying-out');
+					}, { once: true });
+				}
+
+				// ─ FLY IN: destination tab screenshot (or white blank) expands from card ─
+				playFlyInAnimation(tab, () => {
+					tabRail.style.pointerEvents = '';
+				});
+
+				// Switch the real VNC stream immediately while animations play
+				const focusHost = window.location.hostname;
+				fetch(`http://${focusHost}:6081/focus?id=${encodeURIComponent(tab.id)}`, { cache: 'no-store' }).catch(() => { });
+
+			} else {
+				// Fallback: no overlay available — switch directly
+				const focusHost = window.location.hostname;
+				fetch(`http://${focusHost}:6081/focus?id=${encodeURIComponent(tab.id)}`, { cache: 'no-store' }).catch(() => { });
+				tabRail.style.pointerEvents = '';
+			}
+		}
+		// ────────────────────────────────────────────────────────────────────────
+
+		// ─── Fix Bug 7: compare mtime token, not the full URL string ─────────────
+		// Extracts the `?t=<timestamp>` token from a preview URL
+		function getMtimeToken(src) {
+			const m = src ? src.match(/[?&]t=(\d+)/) : null;
+			return m ? m[1] : src;
+		}
+
+		function setPreviewImage(imgEl, src) {
+			if (!src) return;
+			// Only reload if the mtime changed, not every time the full URL changes
+			if (getMtimeToken(imgEl.dataset.src) === getMtimeToken(src)) return;
+			const probe = new Image();
+			probe.decoding = "async";
+			probe.onload = () => {
+				imgEl.src = src;
+				imgEl.dataset.src = src;
+				imgEl.classList.remove("skeleton-thumb");
+			};
+			probe.src = src;
+		}
+		// ────────────────────────────────────────────────────────────────────────
+
+		// Favicon URL helper — uses Google's reliable favicon CDN
+		function getFaviconUrl(url) {
+			if (!url || url.startsWith('about:') || url.startsWith('chrome://')) {
+				return ''; // no favicon for internal pages
+			}
+			try {
+				const origin = new URL(url).origin;
+				return `https://www.google.com/s2/favicons?domain_url=${encodeURIComponent(origin)}&sz=64`;
+			} catch { return ''; }
+		}
+
+		// Get human-readable domain from URL
+		function getDomain(url) {
+			try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return ''; }
+		}
+
+		function createTabCard(tab) {
+			const card = document.createElement("button");
+			card.type = "button";
+			card.className = "tab-card";
+			// Bug A fix: stamp the id so the click handler can do a live lookup
+			card.dataset.tabId = tab.id;
+
+			// Favicon icon box
+			const faviconWrap = document.createElement("div");
+			faviconWrap.className = "tab-favicon-wrap" + (tab.isSkeleton ? " skeleton-thumb" : "");
+
+			const faviconImg = document.createElement("img");
+			faviconImg.className = "tab-favicon";
+			faviconImg.alt = "";
+			if (!tab.isSkeleton) {
+				const src = getFaviconUrl(tab.url || '');
+				if (src) faviconImg.src = src;
+			}
+			faviconWrap.appendChild(faviconImg);
+
+			// Text label (title + domain)
+			const label = document.createElement("div");
+			label.className = "tab-label";
+
+			const titleEl = document.createElement("span");
+			titleEl.className = "tab-label-title";
+			titleEl.textContent = tab.isSkeleton ? "Opening..." : (tab.title || "New Tab");
+
+			const domainEl = document.createElement("span");
+			domainEl.className = "tab-label-domain";
+			domainEl.textContent = tab.isSkeleton ? "" : getDomain(tab.url || '');
+
+			label.append(titleEl, domainEl);
+
+			// Hidden index span (kept for data attribute, invisible)
+			const index = document.createElement("span");
+			index.className = "tab-index";
+
+			const closeBtn = document.createElement("button");
+			closeBtn.className = "tab-close";
+			closeBtn.innerHTML = "×";
+			closeBtn.title = "Close App";
+			closeBtn.addEventListener("click", (e) => {
+				e.stopPropagation();
+				// Always close the live version of this tab
+				const live = tabsData.find(t => t.id === card.dataset.tabId);
+				closeTabViaCDP(live ?? tab);
+			});
+
+			const curveTop = document.createElement("span");
+			curveTop.className = "tab-curve-top";
+			const curveBottom = document.createElement("span");
+			curveBottom.className = "tab-curve-bottom";
+
+			if (tab.isSkeleton) {
+				card.append(curveTop, curveBottom, faviconWrap, label, index);
+			} else {
+				card.append(curveTop, curveBottom, faviconWrap, label, index, closeBtn);
+			}
+
+			// Bug A fix: look up the live tab object at click time, not the
+			// stale snapshot captured when the card was first created.
+			card.addEventListener("click", () => {
+				const live = tabsData.find(t => t.id === card.dataset.tabId);
+				switchTab(live ?? tab);
+			});
+
+			tabNodes.set(tab.id, { card, faviconWrap, faviconImg, titleEl, domainEl, index, closeBtn });
+
+			// Pop-in animation: fires the moment this card is appended to the DOM.
+			// Skip during initial page load (tabs that already existed before we connected).
+			if (!tab.isSkeleton && !initialLoad) {
+				card.classList.add('card-pop-in');
+				card.addEventListener('animationend', () => card.classList.remove('card-pop-in'), { once: true });
+			}
+
+			return tabNodes.get(tab.id);
+		}
+
+		function createNewTabButton() {
+			const btn = document.createElement("button");
+			btn.type = "button";
+			btn.className = "new-tab-btn";
+			btn.innerHTML = "+";
+			btn.addEventListener("click", launchBrowserFromDesktop);
+			return btn;
+		}
+
+		// ─── Fix Bug 6: stable DOM ordering — no card shuffle every poll cycle ───
+		function renderTabs(tabs) {
+			const tabList = Array.isArray(tabs) ? tabs : [];
+			const seen = new Set();
+
+			const newTabBtn = tabRail.querySelector(".new-tab-btn") || createNewTabButton();
+
+			for (const tab of tabList) {
+				seen.add(tab.id);
+				const entry = tabNodes.get(tab.id) || createTabCard(tab);
+
+				entry.card.dataset.index = String(tab.index);
+				entry.card.dataset.tabId = tab.id; // keep in sync if id ever changes
+				entry.card.title = tab.title || "about:blank";
+				entry.index.textContent = String(tab.index);
+
+				// Bug B fix: if we have a pending switch in-flight, don't let the
+				// backend state clobber the optimistic active highlight. Clear
+				// pendingActiveId once the backend agrees the tab is now active.
+				if (pendingActiveId) {
+					if (tab.id === pendingActiveId && tab.active) {
+						// Backend caught up — clear the lock
+						pendingActiveId = null;
+					}
+					// While pending, only touch the class of the card we switched TO
+					// and the one the backend says is active (to deactivate others).
+					const shouldBeActive = (tab.id === pendingActiveId);
+					entry.card.className = "tab-card" + (shouldBeActive ? " active" : "");
+				} else {
+					entry.card.className = "tab-card" + (tab.active ? " active" : "");
+				}
+
+				if (!tab.isSkeleton) {
+					// Update title
+					if (entry.titleEl) entry.titleEl.textContent = tab.title || "New Tab";
+					// Update domain
+					if (entry.domainEl) entry.domainEl.textContent = getDomain(tab.url || '');
+					// Update favicon if URL changed
+					if (entry.faviconImg && entry.faviconImg.dataset.url !== tab.url) {
+						const src = getFaviconUrl(tab.url || '');
+						if (src) entry.faviconImg.src = src;
+						entry.faviconImg.dataset.url = tab.url || '';
+						entry.faviconWrap.classList.remove('skeleton-thumb');
+					}
+					if (!entry.card.contains(entry.closeBtn)) {
+						entry.card.appendChild(entry.closeBtn);
+					}
+				}
+			}
+
+			// Remove cards for gone tabs
+			for (const [id, entry] of tabNodes.entries()) {
+				if (!seen.has(id)) {
+					entry.card.remove();
+					tabNodes.delete(id);
+				}
+			}
+
+			// Stable re-order: only move a node if it's not already in the right position
+			const orderedIds = tabList.map(t => t.id);
+			let refNode = tabRail.firstChild; // walk the real live children
+			for (const id of orderedIds) {
+				const entry = tabNodes.get(id);
+				if (!entry) continue;
+				const card = entry.card;
+				if (card !== refNode) {
+					tabRail.insertBefore(card, refNode);
+				} else {
+					refNode = card.nextSibling;
+				}
+			}
+
+			// Always keep the "+" button at the end
+			tabRail.appendChild(newTabBtn);
+		}
+		// ────────────────────────────────────────────────────────────────────────
+
+		// ─── Fix Bug 2 (continued): reuse pooled WS for sendJSCommand ────────────
+		async function sendJSCommand(code) {
+			const activeTab = tabsData.find(t => t.active);
+			if (!activeTab || !activeTab.wsUrl) return;
+			try {
+				const ws = await getCdpWs(activeTab.wsUrl);
+				sendCdpMessage(ws, {
+					id: Date.now(),
+					method: "Runtime.evaluate",
+					params: { expression: code }
+				});
+			} catch (e) { console.warn("sendJSCommand failed:", e); }
+		}
+		// ────────────────────────────────────────────────────────────────────────
+
+		// ─── closeTabViaCDP: disconnect from UI instantly, let anim finish ───────
+		async function closeTabViaCDP(tab) {
+			if (!tab) return;
+
+			closingTabs.add(tab.id);
+			tabsData = tabsData.filter(t => t.id !== tab.id);
+
+			const entry = tabNodes.get(tab.id);
+			if (entry && entry.card) {
+				entry.card.classList.add('closing');
+				// Critical Fix: Immediately remove from tabNodes so renderTabs
+				// completely ignores this card on the next tick, preventing it
+				// from being re-appended and interrupting the closing animation.
+				tabNodes.delete(tab.id);
+
+				entry.card.addEventListener('animationend', () => {
+					if (entry.card.parentNode) entry.card.remove();
+				}, { once: true });
+			}
+
+			if (!tab.cdpId || !browserWsUrl) {
+				if (tab.wsUrl) {
+					try {
+						const ws = await getCdpWs(tab.wsUrl);
+						sendCdpMessage(ws, { id: 1, method: "Runtime.evaluate", params: { expression: "window.close()" } });
+						sendCdpMessage(ws, { id: 2, method: "Page.close" });
+					} catch (e) { }
+				}
+				return;
+			}
+
+			try {
+				const ws = await getCdpWs(browserWsUrl);
+				sendCdpMessage(ws, {
+					id: 1,
+					method: "Target.closeTarget",
+					params: { targetId: tab.cdpId }
+				});
+			} catch (err) { console.error("Close failed:", err); }
+
+			// GRACEFUL OS KILL: Target.closeTarget doesn't reliably kill the 
+			// Openbox X11 window in TAB_TO_WINDOW=1 mode. We must explicitly 
+			// tell the focus server to kill it via `wmctrl -i -c`.
+			try {
+				const host = window.location.hostname;
+				fetch(`http://${host}:6081/close?id=${encodeURIComponent(tab.id)}`, { cache: 'no-store' }).catch(() => { });
+			} catch (e) { }
+		}
+		// ────────────────────────────────────────────────────────────────────────
+
+		async function navigateViaCDP(url) {
+			const activeTab = tabsData.find(t => t.active);
+			if (!activeTab || !activeTab.wsUrl) return;
+			try {
+				const ws = await getCdpWs(activeTab.wsUrl);
+				sendCdpMessage(ws, {
+					id: 2,
+					method: "Page.navigate",
+					params: { url }
+				});
+			} catch (e) { console.warn("navigate failed:", e); }
+		}
+
+		urlInput.addEventListener("keydown", (event) => {
+			if (event.key === "Enter") {
+				let url = urlInput.value.trim();
+				if (!url) return;
+				if (!/^https?:\/\//i.test(url) && !url.startsWith('chrome://')) {
+					url = "https://" + url;
+				}
+				navigateViaCDP(url);
+				urlInput.blur();
+				rfb.focus();
+			}
+		});
+
+		backBtn.addEventListener("click", () => sendJSCommand("history.back()"));
+		forwardBtn.addEventListener("click", () => sendJSCommand("history.forward()"));
+
+		// ─── Track backend tabs we've already synced to avoid skeleton races ─────
+		const seenBackendIds = new Set();
+
+		async function refreshTabs() {
+			try {
+				const response = await fetch("/tabs/state.json", { cache: "no-store" });
+				if (!response.ok) return;
+				const payload = await response.json();
+
+				if (payload.browserWsUrl) {
+					browserWsUrl = payload.browserWsUrl;
+				}
+
+				// Cleanup closingTabs once backend confirms they're gone
+				const backendIds = new Set(payload.tabs.map(t => t.id));
+				for (const id of closingTabs) {
+					if (!backendIds.has(id)) closingTabs.delete(id);
+				}
+
+				const activeBackendTabs = payload.tabs.filter(t => !closingTabs.has(t.id));
+
+				// Check how many brand new real tabs appeared that we haven't seen before
+				let newTabsCount = 0;
+
+				for (const t of activeBackendTabs) {
+					if (!seenBackendIds.has(t.id)) {
+						seenBackendIds.add(t.id);
+						newTabsCount++;
+					}
+				}
+
+				// ─── Resolving Skeletons ──────────────────────────────────────────
+				// For every brand new real tab the backend reports, drop one skeleton.
+				// This perfectly matches 1:1 no matter how fast they were clicked.
+				const skeletons = tabsData.filter(t => t.isSkeleton);
+				for (let i = 0; i < newTabsCount && skeletons.length > 0; i++) {
+					skeletons.shift();
+				}
+
+				// Merge active tabs with any remaining unresolved skeletons
+				tabsData = [...activeBackendTabs, ...skeletons];
+				// ──────────────────────────────────────────────────────────────────
+
+				renderTabs(tabsData);
+
+				const active = tabsData.find(t => t.active && !t.isSkeleton);
+				if (active && document.activeElement !== urlInput) {
+					if (active.url) {
+						urlInput.value = active.url;
+					} else {
+						// Clear the input if the tab has no URL yet (avoids old URL sticking
+						// confusingly during rapid tab switches before CDP connects).
+						urlInput.value = "";
+					}
+				}
+			} catch { }
+		}
+
+		let isOpeningTab = false;
+		async function launchBrowserFromDesktop() {
+			// Throttle rapid clicks to prevent queueing up ghost tabs
+			if (isOpeningTab) return;
+			isOpeningTab = true;
+			setTimeout(() => { isOpeningTab = false; }, 500);
+
+			rfb.focus();
+			press(KeyTable.XK_Control_L, "ControlLeft", true);
+			press(KeyTable.XK_Alt_L, "AltLeft", true);
+			tap(KeyTable.XK_0, "Digit0");
+			press(KeyTable.XK_Alt_L, "AltLeft", false);
+			press(KeyTable.XK_Control_L, "ControlLeft", false);
+			setStatus("Opened new app");
+
+			// Optimistic skeleton card
+			const tempId = 'temp-' + Date.now();
+			const nextIndex = tabsData.length + 1;
+			const newTab = {
+				id: tempId,
+				index: nextIndex,
+				title: "Loading...",
+				active: false,
+				preview: "",
+				isSkeleton: true
+			};
+			tabsData.push(newTab);
+			renderTabs(tabsData);
+
+			// Trigger fly-in immediately to mask the backend window launching over VNC
+			setTimeout(() => playFlyInAnimation(newTab), 50);
+		}
+
+		async function pasteLocalClipboard() {
+			try {
+				const text = await navigator.clipboard.readText();
+				if (!text) { setStatus("Clipboard is empty"); return; }
+				rfb.focus();
+				for (const ch of text) tap(ch.codePointAt(0), "");
+				setStatus(`Pasted ${text.length} chars`);
+			} catch {
+				const manual = window.prompt("Clipboard access blocked. Paste text here:", "") || "";
+				if (!manual) { setStatus("Paste canceled"); return; }
+				rfb.focus();
+				for (const ch of manual) tap(ch.codePointAt(0), "");
+				setStatus(`Pasted ${manual.length} chars`);
+			}
+		}
+
+		refreshTabs();
+		// ─── Fix Bug 3: poll every 1.5s instead of 5s ────────────────────────────
+		setInterval(refreshTabs, 1500);
+		// ────────────────────────────────────────────────────────────────────────
+
+		window.addEventListener("keydown", (event) => {
+			const withPrimary = event.ctrlKey || event.metaKey;
+			if (withPrimary && event.shiftKey && event.key.toLowerCase() === "v") {
+				event.preventDefault();
+				pasteLocalClipboard();
+			}
+		});
+	</script>
+</body>
+
+</html>

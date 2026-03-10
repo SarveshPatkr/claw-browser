@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openbox_config xmlns="http://openbox.org/3.4/rc">
+  <theme>
+    <name>Natura</name>
+    <titleLayout>CIML</titleLayout>
+    <keepBorder>yes</keepBorder>
+    <animateIconify>yes</animateIconify>
+    <font place="ActiveWindow">
+      <name>Noto Sans</name>
+      <size>10</size>
+      <weight>bold</weight>
+      <slant>normal</slant>
+    </font>
+    <font place="InactiveWindow">
+      <name>Noto Sans</name>
+      <size>10</size>
+      <weight>normal</weight>
+      <slant>normal</slant>
+    </font>
+    <font place="MenuItem">
+      <name>Noto Sans</name>
+      <size>10</size>
+      <weight>normal</weight>
+      <slant>normal</slant>
+    </font>
+  </theme>
+
+  <desktops>
+    <number>1</number>
+    <firstdesk>1</firstdesk>
+    <popupTime>0</popupTime>
+  </desktops>
+
+  <keyboard>
+    <chainQuitKey>C-g</chainQuitKey>
+    <keybind key="C-A-0">
+      <action name="Execute">
+        <command>/usr/local/bin/launch-app</command>
+      </action>
+    </keybind>
+    <keybind key="C-A-1">
+      <action name="Execute">
+        <command>/usr/local/bin/focus-chromium-window 1</command>
+      </action>
+    </keybind>
+    <keybind key="C-A-2">
+      <action name="Execute">
+        <command>/usr/local/bin/focus-chromium-window 2</command>
+      </action>
+    </keybind>
+    <keybind key="C-A-3">
+      <action name="Execute">
+        <command>/usr/local/bin/focus-chromium-window 3</command>
+      </action>
+    </keybind>
+    <keybind key="C-A-4">
+      <action name="Execute">
+        <command>/usr/local/bin/focus-chromium-window 4</command>
+      </action>
+    </keybind>
+    <keybind key="C-A-5">
+      <action name="Execute">
+        <command>/usr/local/bin/focus-chromium-window 5</command>
+      </action>
+    </keybind>
+    <keybind key="C-A-6">
+      <action name="Execute">
+        <command>/usr/local/bin/focus-chromium-window 6</command>
+      </action>
+    </keybind>
+    <keybind key="C-A-7">
+      <action name="Execute">
+        <command>/usr/local/bin/focus-chromium-window 7</command>
+      </action>
+    </keybind>
+    <keybind key="C-A-8">
+      <action name="Execute">
+        <command>/usr/local/bin/focus-chromium-window 8</command>
+      </action>
+    </keybind>
+    <keybind key="C-A-9">
+      <action name="Execute">
+        <command>/usr/local/bin/focus-chromium-window 9</command>
+      </action>
+    </keybind>
+  </keyboard>
+
+  <resize>
+    <drawContents>true</drawContents>
+    <popupShow>Nonpixel</popupShow>
+  </resize>
+
+  <margins>
+    <top>0</top>
+    <left>0</left>
+    <right>0</right>
+    <bottom>0</bottom>
+  </margins>
+
+  <applications>
+    <application class="Chromium">
+      <decor>no</decor>
+      <maximized>yes</maximized>
+    </application>
+  </applications>
+</openbox_config>

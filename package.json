@@ -1,0 +1,14 @@
+{
+  "name": "browser-tool",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "description": "Command interface for controlling the streamed Chromium session",
+  "scripts": {
+    "browser-cmd": "node ./scripts/browser-cmd.mjs"
+  },
+  "dependencies": {
+    "playwright-core": "^1.54.2"
+  }
+}

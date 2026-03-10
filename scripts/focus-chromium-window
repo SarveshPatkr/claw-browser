@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+index="${1:-1}"
+display="${DISPLAY:-:99}"
+
+if ! [[ "$index" =~ ^[0-9]+$ ]]; then
+  exit 0
+fi
+
+wid="$(DISPLAY="$display" wmctrl -lx | awk 'tolower($0) ~ /chromium/ {print $1}' | sed -n "${index}p")"
+
+if [[ -n "$wid" ]]; then
+  DISPLAY="$display" wmctrl -i -a "$wid" || true
+fi

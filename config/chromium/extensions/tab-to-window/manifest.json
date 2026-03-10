@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "Tab To Window",
+  "description": "Move every newly created tab into its own window.",
+  "version": "1.0.0",
+  "permissions": ["tabs"],
+  "background": {
+    "service_worker": "background.js"
+  }
+}

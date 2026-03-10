@@ -1,0 +1,40 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
+@import 'tailwindcss';
+
+:root {
+  --bg-top: #f0f9ff;
+  --bg-mid: #f8fafc;
+  --bg-bottom: #fff7ed;
+  --text-main: #0f172a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  background: radial-gradient(circle at top left, var(--bg-top), transparent 45%),
+    radial-gradient(circle at bottom right, var(--bg-bottom), transparent 42%),
+    linear-gradient(180deg, var(--bg-mid), #ffffff 70%);
+  background-attachment: fixed;
+  color: var(--text-main);
+  font-family: 'Manrope', 'Space Grotesk', 'Segoe UI', sans-serif;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'Space Grotesk', 'Manrope', sans-serif;
+}

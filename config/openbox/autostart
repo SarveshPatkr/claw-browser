@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+# Better font rendering and cursor defaults
+xrdb -merge /home/browser/.Xresources 2>/dev/null
+
+# Wallpaper
+feh --bg-fill /home/browser/wallpaper.jpg &
+
+# Window compositor for rounded corners, blur and soft shadows
+picom --config /home/browser/.config/picom.conf >/tmp/picom.log 2>&1 &

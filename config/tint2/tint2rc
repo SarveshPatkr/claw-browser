@@ -1,0 +1,35 @@
+rounded = 0
+border_width = 0
+background_color = #eff0f3 82
+border_color = #000000 0
+
+rounded = 0
+border_width = 0
+background_color = #000000 0
+border_color = #000000 0
+
+panel_items = C
+panel_size = 100% 24
+panel_margin = 0 0
+panel_padding = 8 3 8
+panel_background_id = 1
+wm_menu = 1
+panel_dock = 0
+panel_pivot_struts = 0
+panel_position = top center horizontal
+panel_layer = top
+panel_monitor = all
+panel_shrink = 0
+autohide = 0
+
+time1_format = %a %b %d  %H:%M
+time1_font = Noto Sans Bold 9
+clock_font_color = #1c1c1e 100
+clock_padding = 8 0
+clock_background_id = 2
+
+tooltip_show_timeout = 0.3
+tooltip_hide_timeout = 0.1
+tooltip_padding = 6 6
+tooltip_background_id = 1
+tooltip_font_color = #1b1b1d 100
